@@ -1,0 +1,28 @@
+{
+  "name": "megaproject",
+  "version": "1.0.0",
+  "description": "this is a first backend project",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "author": "Amit Sharma",
+  "license": "ISC",
+  "devDependencies": {
+    "dotenv": "^16.4.7",
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "@types/mongoose-aggregate-paginate-v2": "^1.0.12",
+    "bcrypt": "^5.1.1",
+    "cloudinary": "^2.6.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.12.2",
+    "mongoose-aggregate-paginate": "^2.0.2",
+    "multer": "^1.4.5-lts.2"
+  }
+}

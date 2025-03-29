@@ -1,0 +1,7 @@
+# Add files and directories to ignore
+.env
+.env.sample
+node_modules/
+node_modules/
+.env
+public/temp/
