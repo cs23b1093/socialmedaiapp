@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("save", async function(next) {
     this.password = bcrypt.hash(this.password, 10, (err, result) => {
-        err? console.error("ERROR: ", err) : console.log(salt);
+        err? console.error("ERROR: ", err) : console.log(result);
     })
 })
 userSchema.methods.isPasswordCorrect = async function (password){
