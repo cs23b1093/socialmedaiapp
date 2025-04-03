@@ -3,10 +3,10 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 
 const userSchema = new mongoose.Schema({
-    watchHistory: [
-            type= mongoose.Schema.type.ObjectId,
-            ref = "Video"
-        ],
+    watchHistory: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Video"
+    }],
     email: {
         type: String,
         required: {
@@ -39,32 +39,30 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: {value: true, message: "password is required"},
         trim: true,
-        lowercase: true,
-        unique: {value: true, message: "password already exists"},
     },
-    avtar: {
+    avatar: {
         type: String,
+        
     },
     refreshToken: {
-        type: String,
+        type: Object
     },
     
 }, {timestamps: true});
 
 userSchema.pre("save", async function(next) {
-    this.password = bcrypt.hash(this.password, 10, (err, result) => {
-        err? console.error("ERROR: ", err) : console.log(result);
-    })
+    return this.password = await bcrypt.hash(this.password, 10,)
+    next()
 })
 userSchema.methods.isPasswordCorrect = async function (password){
-    return await bcrypt.compare(password, this.password, (err, result) => {
+    return bcrypt.compare(password, this.password, (err, result) => {
         if(err) throw err;
         console.log(result? "password correct" : "password incorrect");
     })
 }
 
-userSchema.methods.genrateAccessToken = function () {
-    return jwt.sign({
+userSchema.methods.genrateAccessToken = async function () {
+    return await jwt.sign({
         _id: this._id,
         fullName: this.fullName,
         email: this.email,
@@ -77,8 +75,8 @@ userSchema.methods.genrateAccessToken = function () {
     )
 }
 
-userSchema.methods.genrateRefreshToken = function () {
-    return jwt.sign({
+userSchema.methods.genrateRefreshToken = async function () {
+    const refreshToken = this.refreshToken = await jwt.sign({
         _id: this._id,
     },
         process.env.REFRESH_TOCKEN_SECRET,
@@ -87,6 +85,8 @@ userSchema.methods.genrateRefreshToken = function () {
         }
 
     )
+    console.log(refreshToken)
+    this.refreshToken = refreshToken
 }
 
 export const  User = mongoose.model("User", userSchema);

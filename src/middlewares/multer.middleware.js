@@ -2,24 +2,23 @@ import multer from "multer";
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "./public/temp")
+        cb(null, "public/temp");
     },
     filename: function (req, file, cb) {
-      
-      cb(null, Date.now() + '-' + file.originalname)
+      const suffix = Date.now();
+        cb(null, file.originalname + suffix)
     },
-    limits: { fileSize: 5 * 1024 * 1024}, // maxFile size 5MB
-    fileFilter: function ( req, file, cb ) {
-      if(file.mimetype == 'image/png' || file.mimetype == 'image/jpg' || file.mimetype == 'image/jpeg'){
-        cb(null, true);
-      }
-      else{
-        cb(new Error('only .png , .jpg , .jpeg format allowed'), false);
-      }
-    }
-
   })
-  
-export const upload = multer({ 
-    storage,
+const upload = multer({
+    fileFilter: function (req, file, cb) {
+        const allowedFields = ['avatar', 'coverImage'];
+        if (!allowedFields.includes(file.fieldname)) {
+          console.log(file);
+            return cb(new multer.MulterError('Unexpected field'), false);
+        }
+        cb(null, true);
+    },
+    storage: storage,
 })
+
+export {upload}
