@@ -4,20 +4,22 @@ import { apiError } from "../utils/errorHandler.js";
 import { uploadonCloudinary } from "../utils/Cloudinary.js";
 import { apiResponse } from "../utils/apiResponse.js";
 
-const genrateAccessTokenandRefreshToken = asyncHandler( async (userId) => {
-        try {
-            const user = await User.findById(userId);
-            const accessToken = await user.genrateAccessToken()
-            const refreshToken = await user.genrateRefreshToken()
-            user.refreshToken = refreshToken;
-            await user.save({ validateBeforeSave: false })
+const generateAccessAndRefereshTokens = async(userId) =>{
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.genrateAccessToken()
+        const refreshToken = user.genrateRefreshToken()
 
-            return {accessToken, refreshToken}
-        } catch (error) {
-            throw new apiError(500, "refresh and access token is not genrated!")
-        }
+        user.refreshToken = refreshToken
+        await user.save({ validateBeforeSave: false })
 
-})
+        return {accessToken, refreshToken}
+
+
+    } catch (error) {
+        throw new apiError(500, error.message)
+    }
+}
 
 const registerUser = asyncHandler(async (req, res) => {
     // Input form body
@@ -75,28 +77,66 @@ const registerUser = asyncHandler(async (req, res) => {
     res.status(200).json(new apiResponse(userCreated, "User created successfully!"));
 });
 
-const loginUser = asyncHandler( async (req, res) => {
-    const { userName, email, password } = req.body;
-    if([userName, email, password].some((field) => field?.trim() === ""))
-            throw new apiError(400, "Please fill in all fields!");
-    const user = await User.findOne({ $or: [{userName}, {password}]})
-    if(!user) throw new apiError(404, "User not found");
-    const isMatch = await user.isPasswordCorrect(user.password)
-    if(!isMatch) throw new apiError(401, "Invalid password");
-    const {accessToken, refreshToken} = genrateAccessTokenandRefreshToken(user._id)
-    const option = {
-        httpOnly: true,
-        secure: true,
+const loginUser = asyncHandler(async (req, res) =>{
+    // req body -> data
+    // username or email
+    //find the user
+    //password check
+    //access and referesh token
+    //send cookie
+
+    const {email, username, password} = req.body
+    
+
+    if (!username && !email) {
+        throw new apiError(400, "username or email is required")
     }
-    res.status(200)
-                .cookie('refreshToken',refreshToken, option)
-                .cookie('accessTocken',accessToken,option)
-                .json( new apiResponse(
-                    200,
-                    {
-                        user: user, refreshToken, accessToken
-                    },
-                    "User logged in successfully!"
-                ))
+
+    const user = await User.findOne({
+        $or: [{username}, {email}]
+    })
+
+    if (!user) {
+        throw new apiError(404, "User does not exist")
+    }
+
+   const isPasswordValid = await user.isPasswordCorrect(password)
+
+   if (!isPasswordValid) {
+    throw new apiError(401, "Invalid user credentials")
+    }
+
+   const {accessToken, refreshToken} = await generateAccessAndRefereshTokens(user._id)
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+    console.log("accessToken: ", accessToken)
+    console.log("refreshToken: ", refreshToken)
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new apiResponse(
+            200, 
+            {
+                user: loggedInUser, accessToken, refreshToken
+            },
+            "User logged In Successfully"
+        )
+    )
+
 })
-export default registerUser;
+
+const logoutUser = asyncHandler( async (req, res) => {
+    // find user
+    // remove refresh token from user
+    // clear cookies
+    // send response
+})
+
+export { registerUser, loginUser, logoutUser };
