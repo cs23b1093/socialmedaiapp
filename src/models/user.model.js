@@ -68,7 +68,7 @@ userSchema.methods.genrateAccessToken = async function () {
         email: this.email,
         userName: this.userName,
     },
-        process.env.ACCESS_TOCKEN_SECRET,
+        (process.env.ACCESS_TOCKEN_SECRET),
         {
             expiresIn: process.env.ACCESS_TOCKEN_EXPIRY
         }

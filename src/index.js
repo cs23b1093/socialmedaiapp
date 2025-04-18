@@ -16,6 +16,10 @@ app.use(cors({
 
 app.use(express.static("public"));
 app.use(cookieParser());
+app.use((req, res, next) => {
+  console.log('Cookie parser test:', typeof req.cookies === 'object');
+  next();
+});
 app.get("/", (req, res) => {
     res.send(`
         <div style="
